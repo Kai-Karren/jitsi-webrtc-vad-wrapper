@@ -1,4 +1,36 @@
-### Jitsi-webrtc-vad-wrapper
+### Jitsi-WebRTCVad-Wrapper Fork
+#### by Kai Karren
+
+This repository is based on https://github.com/jitsi/jitsi-webrtc-vad-wrapper.
+The only modification that has been currently made is the addition that a fat jar 
+with all required dependencies can be build now with the pom file. This fat jar allows
+to use the WebRTCVad-Wrapper easily in your projects.
+
+To build the fat jar simply execute `mvn install` and add the created fat jar (jar-with-dependencies)
+to your project. You have **not** to compile libfvad.so or webrtcwrapper.so by yourself. However, you can if you want to.
+
+### Using the Wrapper with PCM audio
+
+Because the official repo is king of saving in terms of documentation, I wanted to point out
+that they already included the conversion from byte[] to and int[] which simplifies
+the usage of PCM audio e.g from a microphone, or a WAV file. 
+
+```java
+
+byte[] audio = loadAudioAsByteArray("fileName.wav");
+
+WebRTCVad webRTCVad = new WebRTCVad(16000, 0);
+
+ByteSignedPcmAudioSegment audioSegment = new ByteSignedPcmAudioSegment(audio);
+
+System.out.println(webRTCVad.isSpeech(audioSegment.to16bitPCM()));
+```
+
+Thanks again for sharing this wrapper for Java!
+
+The original readme is provided below.
+
+### Original Readme
 
 This repository contains a java wrapper around the native VAD engine that is
 part of the WebRTC native code package (https://webrtc.org/native-code/), 
