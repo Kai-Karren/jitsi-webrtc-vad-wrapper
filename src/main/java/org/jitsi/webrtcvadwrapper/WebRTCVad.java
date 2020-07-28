@@ -16,7 +16,6 @@
 
 package org.jitsi.webrtcvadwrapper;
 
-import org.jitsi.utils.*;
 import org.jitsi.webrtcvadwrapper.Exceptions.*;
 
 import java.util.*;
