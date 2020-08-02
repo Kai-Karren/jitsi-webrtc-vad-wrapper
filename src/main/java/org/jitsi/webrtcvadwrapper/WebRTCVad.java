@@ -17,7 +17,10 @@
 package org.jitsi.webrtcvadwrapper;
 
 import org.jitsi.webrtcvadwrapper.Exceptions.*;
+import org.jitsi.webrtcvadwrapper.audio.ByteSignedPcmAudioSegment;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -297,6 +300,52 @@ public class WebRTCVad
                VadClosedException
     {
         return isSpeech(convertPCMAudioTo16bitInt(audioSample));
+    }
+
+    /**
+     * Method that allows to use a byte array as input.
+     * The conversion from byte[] to int[] is then handled internally.
+     *
+     * Calls isSpeech(int[])
+     *
+     * @param audioSample   The PCM audio as byte[]
+     * @return  The result if the given audio sample is Speech or not
+     * @throws UnsupportedSegmentLengthException when the length of the audio was incorrect.
+     * @throws NativeLibraryException when the native VAD library fails to handle the given segment
+     * @throws VadClosedException when the native VAD object has been already closed
+     */
+    public boolean isSpeech(byte[] audioSample) throws UnsupportedSegmentLengthException, NativeLibraryException, VadClosedException{
+
+        ByteSignedPcmAudioSegment audioSegment = new ByteSignedPcmAudioSegment(audioSample);
+
+        return isSpeech(audioSegment.to16bitPCM());
+
+    }
+
+    /**
+     * Disables the reflective access warning of the JVM. A reflective access to originally private fields is required for the
+     * WebRTCVad wrapper to work. Note: This is kind of a hack. Java 9+ messed somethings really up to require something like this...
+     *
+     * Source and inspiration of this method
+     * https://stackoverflow.com/questions/46454995/how-to-hide-warning-illegal-reflective-access-in-java-9-without-jvm-argument
+     */
+    @SuppressWarnings("unchecked")
+    public static void disableAccessWarnings() {
+        try {
+            Class unsafeClass = Class.forName("sun.misc.Unsafe");
+            Field field = unsafeClass.getDeclaredField("theUnsafe");
+            field.setAccessible(true);
+            Object unsafe = field.get(null);
+
+            Method putObjectVolatile = unsafeClass.getDeclaredMethod("putObjectVolatile", Object.class, long.class, Object.class);
+            Method staticFieldOffset = unsafeClass.getDeclaredMethod("staticFieldOffset", Field.class);
+
+            Class loggerClass = Class.forName("jdk.internal.module.IllegalAccessLogger");
+            Field loggerField = loggerClass.getDeclaredField("logger");
+            Long offset = (Long) staticFieldOffset.invoke(unsafe, loggerField);
+            putObjectVolatile.invoke(unsafe, loggerClass, offset, null);
+        } catch (Exception ignored) {
+        }
     }
 
     /**

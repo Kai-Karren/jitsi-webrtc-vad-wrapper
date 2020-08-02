@@ -2,14 +2,38 @@
 #### by Kai Karren
 
 This repository is based on https://github.com/jitsi/jitsi-webrtc-vad-wrapper.
-The only modification that has been currently made is the addition that a fat jar 
-with all required dependencies can be build now with the pom file. This fat jar allows
-to use the WebRTCVad-Wrapper easily in your projects.
+With the following modifications:
+- Simplified the use of pcm audio as byte[] with the WebRTCVad class.
+- Modified to pom file to build a fat jar with all required dependencies. This fat jar allows to use the WebRTCVad-Wrapper easily in your projects.
 
 To build the fat jar simply execute `mvn install` and add the created fat jar (jar-with-dependencies)
 to your project. You have **not** to compile libfvad.so or webrtcwrapper.so by yourself. However, you can if you want to.
 
 ### Using the Wrapper with PCM audio
+
+New simplified version provided by this fork to enable a simple, consistent interface similar to other WebRTCVad wrappers or VAD implementations.
+```java
+
+byte[] audio = loadAudioAsByteArray("fileName.wav");
+
+byte[] frame = getFrameFromAudio(audio, 0);
+
+/*
+ * The voice activity needs 2 parameters, sample rate and operating mode.
+ *
+ * Supported sample rates are 8, 16, 32 and 48 KHz.
+ *
+ * Valid modes are 0 ("quality"), 1 ("low bitrate"), 2 ("aggressive"), and 3
+ * ("very aggressive").  The more aggressive the mode, the higher the
+ * probability that active speech is detected, which also increases the
+ * amount of false positives.
+ */
+WebRTCVad webRTCVad = new WebRTCVad(16000, 0);
+
+System.out.println(webRTCVad.isSpeech(frame))
+
+```
+
 
 Because the official repo is king of saving in terms of documentation, I wanted to point out
 that they already included the conversion from byte[] to and int[] which simplifies
@@ -18,10 +42,12 @@ the usage of PCM audio e.g from a microphone, or a WAV file.
 ```java
 
 byte[] audio = loadAudioAsByteArray("fileName.wav");
+byte[] frame = getFrameFromAudio(audio, 0);
+
 
 WebRTCVad webRTCVad = new WebRTCVad(16000, 0);
 
-ByteSignedPcmAudioSegment audioSegment = new ByteSignedPcmAudioSegment(audio);
+ByteSignedPcmAudioSegment audioSegment = new ByteSignedPcmAudioSegment(frame);
 
 System.out.println(webRTCVad.isSpeech(audioSegment.to16bitPCM()));
 ```
